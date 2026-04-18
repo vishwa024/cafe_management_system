@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, MessageSquare } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
+import { API_BASE_URL } from '../../config/runtime';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -60,7 +61,7 @@ export default function Login() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/google`;
+    window.location.href = `${API_BASE_URL}/auth/google`;
   };
 
   return (

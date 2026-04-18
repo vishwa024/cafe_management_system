@@ -42,10 +42,11 @@
 
 // export default api;
 
-// ✅ Base URL — no trailing slash, no /api suffix duplication
-const BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
-
 import axios from 'axios';
+import { API_BASE_URL } from '../config/runtime';
+
+// ✅ Base URL — no trailing slash, no /api suffix duplication
+const BASE_URL = API_BASE_URL.replace(/\/$/, '');
 
 const api = axios.create({
     baseURL: BASE_URL,

@@ -6,6 +6,7 @@ import { Chart as ChartJS, Tooltip, Legend, CategoryScale, LinearScale, BarEleme
 import { LoadingSpinner } from '../../components/shared/StatusBadge';
 import { io } from 'socket.io-client';
 import toast from 'react-hot-toast';
+import { SOCKET_URL } from '../../config/runtime';
 import { 
   TrendingUp, Package, AlertTriangle, ShoppingBag, 
   CalendarDays, Clock, RefreshCw, LogOut,
@@ -81,7 +82,10 @@ export default function ManagerDashboard() {
   }, [fetchDashboard]);
 
   useEffect(() => {
-    const socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000');
+    const socket = io(SOCKET_URL, {
+      withCredentials: true,
+      transports: ['websocket', 'polling'],
+    });
 
     socket.on('presence-update', fetchDashboard);
     socket.on('order-updated', fetchDashboard);

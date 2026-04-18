@@ -49,12 +49,12 @@ const presenceService = {
       heartbeatInterval = setInterval(async () => {
         try {
           await sendHeartbeat();
-        } catch (err) {
-          console.error('Presence heartbeat failed', err);
+        } catch {
+          // Ignore transient backend disconnects to avoid flooding the console in production.
         }
       }, 30000); 
     } catch (err) {
-      console.error("Presence service failed to start", err);
+      console.warn('Presence service unavailable');
     }
   },
 
@@ -68,8 +68,8 @@ const presenceService = {
           userId: currentUserId,
           sessionId: currentSessionId,
         });
-      } catch (err) {
-        console.error('Presence cleanup failed', err);
+      } catch {
+        // Best-effort cleanup only.
       }
     }
 
