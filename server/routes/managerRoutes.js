@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
-const supplierOrderController = require('../controllers/supplierOrderWorkflowController');
+const supplierOrderController = require('../controllers/supplierOrderWorkflowcontroller');
 const {
     getDashboard,
     getAllOrders, getOrderById, markOrderPaid, cancelOrder,
