@@ -7,9 +7,10 @@ const { sendSupplierPurchaseOrderEmail } = require('../services/emailService');
 const buildResponseToken = () => crypto.randomBytes(24).toString('hex');
 const SUPPLIER_POPULATION = 'name contactName phone email accountName upiId qrCodeUrl';
 
+// Change this function in your controller
 const getSupplierResponsePageUrl = (orderId, action, token) => {
-    const baseUrl = 'https://cafe-management-system-sjai.onrender.com';
-    return `${baseUrl}/api/supplier-orders/${orderId}/respond?status=${action}&token=${token}`;
+    const baseUrl = 'https://cafe-management-system-32m1.vercel.app';
+    return `${baseUrl}/supplier/orders/${orderId}/respond?action=${action}&token=${token}`;
 };
 
 const isSupplierResponseAllowed = (status) => ['accepted', 'rejected'].includes(status);
