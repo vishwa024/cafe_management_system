@@ -87,7 +87,6 @@ const passport = require('passport');
 const path = require('path');
 const connectDB = require('./config/db');
 
-// Import passport config and pass passport instance
 const passportConfig = require('./config/passport');
 
 const authRoutes = require('./routes/authRoutes');
@@ -108,49 +107,51 @@ const app = express();
 // Connect DB
 connectDB();
 
-// Initialize passport with strategies
+// Initialize passport
 passportConfig(passport);
 
-// Function to normalize origin (remove trailing slash)
-const normalizeOrigin = (origin) => {
-  if (!origin) return origin;
-  return origin.replace(/\/$/, '');
-};
-
-// Allowed origins
+// ✅ Allowed origins (no trailing slashes)
 const allowedOrigins = [
   'http://localhost:5173',
+  'http://localhost:3000',
   'https://cafe-management-system-32m1.vercel.app',
-  'https://cafe-management-system-sjai.onrender.com'
 ];
 
-// CORS configuration - FIXED for trailing slash issue
+// ✅ Add CLIENT_URL from .env if set
+if (process.env.CLIENT_URL) {
+  const envOrigin = process.env.CLIENT_URL.replace(/\/$/, '');
+  if (!allowedOrigins.includes(envOrigin)) {
+    allowedOrigins.push(envOrigin);
+  }
+}
+
+// ✅ CORS - must be BEFORE helmet and all routes
 app.use(cors({
-  origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin) {
+  origin: function (origin, callback) {
+    // Allow non-browser requests (Postman, mobile, curl)
+    if (!origin) return callback(null, true);
+
+    // Normalize: remove trailing slash
+    const normalized = origin.replace(/\/$/, '');
+
+    if (allowedOrigins.includes(normalized)) {
       return callback(null, true);
     }
-    
-    // Normalize the origin by removing trailing slash
-    const normalizedOrigin = normalizeOrigin(origin);
-    
-    // Also check the environment variable (with trailing slash handling)
-    const clientUrl = process.env.CLIENT_URL ? normalizeOrigin(process.env.CLIENT_URL) : null;
-    
-    // Check if normalized origin is allowed
-    if (allowedOrigins.indexOf(normalizedOrigin) !== -1 || (clientUrl && normalizedOrigin === clientUrl)) {
-      callback(null, true);
-    } else {
-      console.log('CORS blocked origin:', origin);
-      console.log('Normalized origin:', normalizedOrigin);
-      console.log('Allowed origins:', allowedOrigins);
-      callback(new Error('Not allowed by CORS'));
-    }
+
+    console.warn(`❌ CORS blocked: ${origin}`);
+    return callback(new Error(`CORS policy: origin ${origin} not allowed`));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+}));
+
+// ✅ Handle preflight OPTIONS requests globally
+app.options('*', cors());
+
+// ✅ Helmet AFTER cors (helmet can interfere if placed first)
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
 
 app.use(cookieParser());
@@ -158,11 +159,18 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 app.use(passport.initialize());
+
+// ✅ Static uploads with cross-origin header
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
   setHeaders: (res) => {
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
   },
 }));
+
+// ✅ Health check (useful to wake up Render free tier)
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'OK', cafe: 'Roller Coaster Cafe 🎢', timestamp: new Date() });
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -178,15 +186,14 @@ app.use('/api/inventory', inventoryRoutes);
 app.use('/api/presence', presenceRoutes);
 app.use('/api/tables', tableRoutes);
 
-// Health check
-app.get('/api/health', (req, res) => res.json({ status: 'OK', cafe: 'Roller Coaster Cafe 🎢' }));
-
 // 404
-app.use((req, res) => res.status(404).json({ message: 'Route not found' }));
+app.use((req, res) => {
+  res.status(404).json({ message: 'Route not found' });
+});
 
-// Error handler
+// Global error handler
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('💥 Error:', err.stack);
   res.status(err.status || 500).json({ message: err.message || 'Internal Server Error' });
 });
 
