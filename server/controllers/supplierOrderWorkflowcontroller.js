@@ -8,8 +8,8 @@ const buildResponseToken = () => crypto.randomBytes(24).toString('hex');
 const SUPPLIER_POPULATION = 'name contactName phone email accountName upiId qrCodeUrl';
 
 const getSupplierResponsePageUrl = (orderId, action, token) => {
-    const baseUrl =  process.env.CLIENT_URL || 'http://localhost:5173';
-    return `${baseUrl}/supplier/orders/${orderId}/respond?action=${action}&token=${token}`;
+    const baseUrl = 'https://cafe-management-system-sjai.onrender.com';
+    return `${baseUrl}/api/supplier-orders/${orderId}/respond?status=${action}&token=${token}`;
 };
 
 const isSupplierResponseAllowed = (status) => ['accepted', 'rejected'].includes(status);
