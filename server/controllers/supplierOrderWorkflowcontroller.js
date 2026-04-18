@@ -8,7 +8,7 @@ const buildResponseToken = () => crypto.randomBytes(24).toString('hex');
 const SUPPLIER_POPULATION = 'name contactName phone email accountName upiId qrCodeUrl';
 
 const getSupplierResponsePageUrl = (orderId, action, token) => {
-    const baseUrl = process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:5173';
+    const baseUrl =  process.env.CLIENT_URL || 'http://localhost:5173';
     return `${baseUrl}/supplier/orders/${orderId}/respond?action=${action}&token=${token}`;
 };
 
