@@ -4,7 +4,7 @@ const {
     getSupplierOrderDetails,
     respondToSupplierOrder,
     respondToOrderFromEmail,
-} = require('../controllers/supplierOrderWorkflowController');
+} = require('../controllers/supplierOrderWorkflowcontroller');
 
 router.get('/:id/details', getSupplierOrderDetails);
 router.post('/:id/respond', respondToSupplierOrder);
