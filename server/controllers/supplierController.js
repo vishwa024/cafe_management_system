@@ -14,9 +14,11 @@ const transporter = nodemailer.createTransport({
 
 // Send email to supplier
 const sendSupplierEmail = async (order, supplier) => {
-    const acceptUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/supplier/orders/${order._id}/accept?token=${Buffer.from(supplier.email).toString('base64')}`;
-    const rejectUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/supplier/orders/${order._id}/reject?token=${Buffer.from(supplier.email).toString('base64')}`;
+    // const acceptUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/supplier/orders/${order._id}/accept?token=${Buffer.from(supplier.email).toString('base64')}`;
+    // const rejectUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/supplier/orders/${order._id}/reject?token=${Buffer.from(supplier.email).toString('base64')}`;
     
+    const acceptUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/supplier/orders/${order._id}/respond?action=accept&token=${Buffer.from(supplier.email).toString('base64')}`;
+    const rejectUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/supplier/orders/${order._id}/respond?action=reject&token=${Buffer.from(supplier.email).toString('base64')}`;
     const itemsHtml = order.items.map(item => `
         <tr>
             <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${item.itemName}</td>

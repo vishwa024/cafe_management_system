@@ -9,10 +9,10 @@ const SUPPLIER_POPULATION = 'name contactName phone email accountName upiId qrCo
 
 // Change this function in your controller
 const getSupplierResponsePageUrl = (orderId, action, token) => {
+    // Use your Vercel frontend URL (NOT the Render backend)
     const baseUrl = 'https://cafe-management-system-32m1.vercel.app';
     return `${baseUrl}/supplier/orders/${orderId}/respond?action=${action}&token=${token}`;
 };
-
 const isSupplierResponseAllowed = (status) => ['accepted', 'rejected'].includes(status);
 const isManagerStatusAllowed = (status) => ['processing', 'shipped'].includes(status);
 const isDeliveryAllowed = (status) => ['accepted', 'processing', 'shipped'].includes(status);
