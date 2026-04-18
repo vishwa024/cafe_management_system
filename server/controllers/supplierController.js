@@ -14,8 +14,8 @@ const transporter = nodemailer.createTransport({
 
 // Send email to supplier
 const sendSupplierEmail = async (order, supplier) => {
-    const acceptUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/supplier/orders/${order._id}/accept?token=${Buffer.from(supplier.email).toString('base64')}`;
-    const rejectUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/supplier/orders/${order._id}/reject?token=${Buffer.from(supplier.email).toString('base64')}`;
+    const acceptUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/supplier/orders/${order._id}/accept?token=${Buffer.from(supplier.email).toString('base64')}`;
+    const rejectUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/supplier/orders/${order._id}/reject?token=${Buffer.from(supplier.email).toString('base64')}`;
     
     const itemsHtml = order.items.map(item => `
         <tr>
