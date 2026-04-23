@@ -193,7 +193,7 @@ export default function HomePage() {
         <section className="relative min-h-[550px] flex items-center">
           <div className="absolute inset-0">
             <img 
-              src="https://i0.wp.com/themes.svn.wordpress.org/classic-coffee-shop/3.7.2/screenshot.png?w=post-thumbnail&strip=all"
+              src="https://www.vecteezy.com/photo/31618626-inside-clean-kitchen-of-a-modern-restaurant-or-mini-cafe-with-cooking-utensils-and-small-bar-counter-concept-by-ai-generated"
               alt="Roller Coaster Cafe"
               className="h-full w-full object-cover"
             />
