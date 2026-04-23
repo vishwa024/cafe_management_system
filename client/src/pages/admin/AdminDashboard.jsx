@@ -498,7 +498,7 @@ export default function AdminDashboard() {
   }, [queryClient]);
 
   const overview = dashboard?.overview || {};
-  const revenueByDay = dashboard?.revenueByDay || [];
+  const revenueByDay = dashboard?.revenueByDay || dashboard?.monthlyRevenueByDay || [];
   const revenueChartTitle = dashboard?.revenueChartTitle || 'Revenue Last 7 Days';
   const revenueChartDescription = dashboard?.revenueChartDescription || 'Daily revenue view';
   const revenueSummaryLabel = dashboard?.revenueSummaryLabel || '7 Day Total';
@@ -658,6 +658,7 @@ export default function AdminDashboard() {
                   tick={{ fill: '#a0968c', fontSize: 12 }}
                   tickFormatter={(v) => currency.format(v)}
                   width={78}
+                  domain={[0, 'auto']}
                 />
                 <Tooltip
                   formatter={(value) => [currency.format(value), 'Revenue']}

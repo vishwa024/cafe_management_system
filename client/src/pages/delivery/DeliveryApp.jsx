@@ -157,10 +157,11 @@ const formatPaymentStatus = (order) => {
   const raw = String(order?.deliveryPayment?.status || order?.paymentStatus || 'pending').toLowerCase();
   return raw.replace(/\b\w/g, (char) => char.toUpperCase());
 };
+const CAFE_UPI_ID = String(import.meta.env.VITE_CAFE_UPI_ID || 'kashishsolanki8082@okaxis').trim();
 const buildOrderPaymentQr = (order) => {
   if (order?.deliveryPayment?.qrPayload) return order.deliveryPayment.qrPayload;
   const amount = Number(order?.totalAmount || 0).toFixed(2);
-  return `upi://pay?pa=rollercoastercafe@upi&pn=${encodeURIComponent('Roller Coaster Cafe')}&am=${amount}&tn=${encodeURIComponent(`Order ${order?.orderId || ''} - ${order?.customer?.name || 'Customer'}`)}&cu=INR&tr=${encodeURIComponent(order?.orderId || '')}`;
+  return `upi://pay?pa=${encodeURIComponent(CAFE_UPI_ID)}&pn=${encodeURIComponent('Roller Coaster Cafe')}&am=${amount}&tn=${encodeURIComponent(`Order ${order?.orderId || ''} - ${order?.customer?.name || 'Customer'}`)}&cu=INR&tr=${encodeURIComponent(order?.orderId || '')}`;
 };
 const buildMapEmbedUrl = (location) => {
   if (!hasCoordinates(location)) return '';

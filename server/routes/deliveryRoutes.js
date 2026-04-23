@@ -109,7 +109,7 @@ const getDeliveryPaymentLabel = (value) => {
 const buildPaymentQrPayload = (order) => {
   const amount = Number(order?.totalAmount || 0).toFixed(2);
   const orderLabel = encodeURIComponent(`Order ${order?.orderId || ''} - ${order?.customer?.name || 'Customer'}`);
-  const payee = encodeURIComponent(process.env.CAFE_UPI_ID || 'rollercoastercafe@upi');
+  const payee = encodeURIComponent(String(process.env.CAFE_UPI_ID || 'kashishsolanki8082@okaxis').trim());
   return `upi://pay?pa=${payee}&pn=${encodeURIComponent('Roller Coaster Cafe')}&am=${amount}&tn=${orderLabel}&cu=INR&tr=${encodeURIComponent(order?.orderId || '')}`;
 };
 const buildNotificationEntry = (status, title, message, channels = ['push']) => ({
