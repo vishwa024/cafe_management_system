@@ -281,8 +281,8 @@ export default function HomePage() {
                   over exceptional food and warm hospitality.
                 </p>
               </div>
-              <div className="rounded-2xl overflow-hidden shadow-xl">
-                <img 
+              <div className="rounded-2xl overflow-hidden shadow-xl h-[400px] md:h-[500px] w-full">
+                <img
                   src="https://rollercoastercafe.com/assets/images/about.png"
                   alt="Cafe interior"
                   className="h-full w-full object-cover"
