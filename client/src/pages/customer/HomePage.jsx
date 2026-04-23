@@ -283,7 +283,7 @@ export default function HomePage() {
               </div>
               <div className="rounded-2xl overflow-hidden shadow-xl h-[300px] md:h-[500px] w-full">
                 <img
-                  src="https://i.pinimg.com/736x/0b/5c/cd/0b5ccd9df7648b709f000d855a5787aa.jpg"
+                  src="https://i.pinimg.com/webp80/1200x/78/e7/34/78e734f3bf19f9f4a282594239519565.webp"
                   alt="Cafe interior"
                   className="h-full w-full object-cover"
                 />
