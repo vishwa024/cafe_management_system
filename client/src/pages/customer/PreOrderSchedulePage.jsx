@@ -4,20 +4,12 @@ import { useQuery } from '@tanstack/react-query';
 import { CalendarDays, ArrowRight, Truck, ShoppingBag, Table2, Clock, AlertCircle, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { saveOrderPreferences } from '../../utils/orderPreferences';
+import { toDateTimeLocalValue, toScheduleIsoString } from '../../utils/scheduleTime';
 import api from '../../services/api';
 
 const PREORDER_FEE = 49;
 const PREORDER_MIN_MINUTES = 30;
 const PREORDER_MAX_MINUTES = 240;
-
-const formatDateTimeInput = (value) => {
-  if (!value) return '';
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return '';
-
-  const offsetMs = parsed.getTimezoneOffset() * 60000;
-  return new Date(parsed.getTime() - offsetMs).toISOString().slice(0, 16);
-};
 
 export default function PreOrderSchedulePage() {
   const navigate = useNavigate();
@@ -34,7 +26,7 @@ export default function PreOrderSchedulePage() {
     queryKey: ['dinein-tables', scheduledTime],
     queryFn: async () => {
       const response = await api.get('/tables/statuses', {
-        params: { scheduledTime },
+        params: { scheduledTime: toScheduleIsoString(scheduledTime) || scheduledTime },
       });
       return response.data?.tables || [];
     },
@@ -45,13 +37,13 @@ export default function PreOrderSchedulePage() {
   const getMinDateTime = () => {
     const date = new Date();
     date.setMinutes(date.getMinutes() + PREORDER_MIN_MINUTES);
-    return formatDateTimeInput(date);
+    return toDateTimeLocalValue(date);
   };
 
   const getMaxDateTime = () => {
     const date = new Date();
     date.setMinutes(date.getMinutes() + PREORDER_MAX_MINUTES);
-    return formatDateTimeInput(date);
+    return toDateTimeLocalValue(date);
   };
 
   useEffect(() => {
@@ -60,7 +52,7 @@ export default function PreOrderSchedulePage() {
       if (!saved?.isPreOrder) return;
 
       setSelectedType(saved.preOrderMethod || saved.orderType || null);
-      setScheduledTime(formatDateTimeInput(saved.scheduledDateTime));
+      setScheduledTime(toDateTimeLocalValue(saved.scheduledDateTime));
       setGuestCount(Number(saved.guestCount) || 2);
     } catch {
       // Ignore malformed saved preferences.
@@ -125,7 +117,7 @@ export default function PreOrderSchedulePage() {
       orderType: selectedType,
       isPreOrder: true,
       preOrderMethod: selectedType,
-      scheduledDateTime: scheduledTime,
+      scheduledDateTime: toScheduleIsoString(scheduledTime) || scheduledTime,
       tableNumber: selectedType === 'dine-in' ? selectedTable?.number : null,
       tableId: selectedType === 'dine-in' ? selectedTable?._id : null,
       guestCount: selectedType === 'dine-in' ? guestCount : null,

@@ -2540,6 +2540,7 @@ import OffersModal from '../../components/customer/OffersModal';
 import OrderTypeSelector from '../../components/customer/OrderTypeSelector';
 import OrderPreferences from '../../components/customer/OrderPreferences';
 import { getOrderPreferences, clearOrderPreferences, saveOrderPreferences } from '../../utils/orderPreferences';
+import { toDateTimeLocalValue, toScheduleIsoString } from '../../utils/scheduleTime';
 
 const STEPS = ['Details', 'Payment', 'Confirm'];
 const PAYMENT_METHODS = [
@@ -2704,6 +2705,10 @@ function getScheduleError(orderType, scheduledTime) {
   return '';
 }
 
+function getDisplayScheduleValue(value) {
+  return toDateTimeLocalValue(value) || value || '';
+}
+
 export default function CheckoutExperience() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -2794,7 +2799,7 @@ export default function CheckoutExperience() {
         orderType: effectiveMethod,
         address: savedPreferences.address || '',
         location: savedPreferences.location || null,
-        scheduledTime: savedPreferences.scheduledDateTime || '',
+        scheduledTime: getDisplayScheduleValue(savedPreferences.scheduledDateTime),
         tableNumber: savedPreferences.tableNumber || '',
         guestCount: savedPreferences.guestCount || 2,
         isPreOrder: Boolean(savedPreferences.isPreOrder),
@@ -2840,7 +2845,10 @@ export default function CheckoutExperience() {
       deliveryMethod: savedPreferences.deliveryMethod || form.orderType,
       isPreOrder: Boolean(form.isPreOrder),
       preOrderMethod: form.preOrderMethod || savedPreferences.preOrderMethod || '',
-      scheduledDateTime: form.scheduledTime || savedPreferences.scheduledDateTime || '',
+      scheduledDateTime:
+        toScheduleIsoString(form.scheduledTime) ||
+        savedPreferences.scheduledDateTime ||
+        '',
       address: form.address,
       location: form.location || null,
       timestamp: new Date().toISOString(),
@@ -3134,6 +3142,7 @@ export default function CheckoutExperience() {
     if (!validateOrder()) return;
     setLoading(true);
     try {
+      const normalizedScheduledTime = toScheduleIsoString(form.scheduledTime) || form.scheduledTime || undefined;
       const orderData = {
         items: items.map((item) => ({
           menuItemId: item.menuItemId,
@@ -3145,7 +3154,7 @@ export default function CheckoutExperience() {
         isPreOrder: form.isPreOrder,
         preOrderMethod: form.isPreOrder ? (form.preOrderMethod || form.orderType) : undefined,
         preOrderFee: preOrderServiceFee,
-        scheduledTime: form.scheduledTime || undefined,
+        scheduledTime: normalizedScheduledTime,
         paymentMethod: resolvedPaymentMethod,
         paymentReference: form.paymentMethod === 'online' ? form.paymentReference.trim() : undefined,
         paymentVerified: paymentVerified,
@@ -3154,7 +3163,9 @@ export default function CheckoutExperience() {
         couponCode: couponApplied ? form.couponCode.trim().toUpperCase() : undefined,
         specialNotes: [
           form.isPreOrder ? `Pre-order type: ${form.preOrderMethod || form.orderType}` : null,
-          form.isPreOrder ? `Scheduled for: ${form.scheduledTime}` : null,
+          form.isPreOrder && normalizedScheduledTime
+            ? `Scheduled for: ${new Date(normalizedScheduledTime).toLocaleString()}`
+            : null,
           form.orderType === 'dine-in' && form.tableNumber ? `Table ${form.tableNumber}` : null,
           form.orderType === 'dine-in' ? `Guests: ${form.guestCount}` : null,
           form.specialNotes || null,
