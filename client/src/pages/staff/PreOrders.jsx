@@ -1382,6 +1382,7 @@ const statusStyles = {
 };
 
 const statusOrder = ['placed', 'confirmed', 'preparing', 'ready', 'completed'];
+const PREORDER_CONFIRM_LEAD_MINUTES = 30;
 
 function minutesUntil(value) {
   if (!value) return null;
@@ -1421,6 +1422,12 @@ function getPreOrderTypeLabel(order) {
 
 function getPreOrderPrepLeadMinutes(order) {
   return order?.preOrderMethod === 'delivery' ? 30 : 15;
+}
+
+function isConfirmationLocked(order, nextStatus) {
+  if (nextStatus !== 'confirmed' || !order?.scheduledTime) return false;
+  const diff = minutesUntil(order.scheduledTime);
+  return diff !== null && diff > PREORDER_CONFIRM_LEAD_MINUTES;
 }
 
 function isPreparingLocked(order, nextStatus) {
@@ -1562,7 +1569,7 @@ export default function PreOrders() {
         String(order.status || '').toLowerCase() === 'placed'
         && diff !== null
         && diff >= 0
-        && diff <= 15
+        && diff <= PREORDER_CONFIRM_LEAD_MINUTES
         && !seenReminderIds.includes(order._id)
       );
     });
@@ -1576,6 +1583,12 @@ export default function PreOrders() {
   const confirmStatusUpdate = async () => {
     if (!statusDialog?.order || !statusDialog?.nextStatus) return;
     const { order, nextStatus } = statusDialog;
+
+    if (isConfirmationLocked(order, nextStatus)) {
+      toast.error(`Pre-orders can be confirmed only within ${PREORDER_CONFIRM_LEAD_MINUTES} minutes of the scheduled time.`);
+      setStatusDialog(null);
+      return;
+    }
 
     if (isPreparingLocked(order, nextStatus)) {
       toast.error(`Cannot mark as preparing yet. ${getPreOrderPrepLeadMinutes(order)} minutes before scheduled time.`);
@@ -1804,6 +1817,7 @@ export default function PreOrders() {
             {orders.map((order) => {
               const nextStatus = nextPreOrderStatus(order.status);
               const diff = minutesUntil(order.scheduledTime);
+              const confirmationLocked = isConfirmationLocked(order, nextStatus);
               const preparingLocked = isPreparingLocked(order, nextStatus);
               const assignedToMe = order.assignedStaff?._id === user?._id;
               const assignedToOther = !!order.assignedStaff && !assignedToMe;
@@ -1884,13 +1898,19 @@ export default function PreOrders() {
                       {nextStatus && !assignedToOther && !isCompleted && (
                         <button 
                           onClick={() => handleUpdateStatus(order, nextStatus)} 
-                          disabled={preparingLocked || updateMutation.isPending}
+                          disabled={confirmationLocked || preparingLocked || updateMutation.isPending}
                           className="flex-1 py-2 rounded-lg border border-[#b97844] text-[#b97844] font-medium text-sm hover:bg-[#b97844] hover:text-white transition-all disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-[#b97844]"
                         >
                           {updateMutation.isPending ? 'Updating...' : getPreOrderActionLabel(nextStatus)}
                         </button>
                       )}
-                      
+
+                      {confirmationLocked && (
+                        <p className="w-full text-xs text-amber-700">
+                          Confirmation unlocks 30 minutes before the scheduled time.
+                        </p>
+                      )}
+
                       {preparingLocked && (
                         <p className="w-full text-xs text-amber-700">
                           Preparation unlocks {getPreOrderPrepLeadMinutes(order)} minutes before the scheduled time.
@@ -1974,6 +1994,11 @@ export default function PreOrders() {
               <div className="rounded-xl bg-[#faf8f5] p-3">
                 <p><span className="font-medium text-[#3f3328]">Scheduled:</span> {formatWindow(statusDialog.order.scheduledTime)}</p>
                 <p><span className="font-medium text-[#3f3328]">Order type:</span> {getPreOrderTypeLabel(statusDialog.order)}</p>
+                {statusDialog.nextStatus === 'confirmed' && isConfirmationLocked(statusDialog.order, statusDialog.nextStatus) && (
+                  <p className="mt-2 text-amber-700">
+                    Confirmation becomes available 30 minutes before service time.
+                  </p>
+                )}
                 {statusDialog.nextStatus === 'preparing' && isPreparingLocked(statusDialog.order, statusDialog.nextStatus) && (
                   <p className="mt-2 text-amber-700">
                     ⚠️ Preparation becomes available {getPreOrderPrepLeadMinutes(statusDialog.order)} minutes before service time.
@@ -1991,7 +2016,11 @@ export default function PreOrders() {
               </button>
               <button
                 onClick={confirmStatusUpdate}
-                disabled={isPreparingLocked(statusDialog.order, statusDialog.nextStatus) || updateMutation.isPending}
+                disabled={
+                  isConfirmationLocked(statusDialog.order, statusDialog.nextStatus) ||
+                  isPreparingLocked(statusDialog.order, statusDialog.nextStatus) ||
+                  updateMutation.isPending
+                }
                 className="rounded-lg bg-[#b97844] px-4 py-2 text-sm font-medium text-white hover:bg-[#9e6538] transition-all disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {updateMutation.isPending ? 'Updating...' : (statusDialog.source === 'reminder' ? 'Confirm Pre-order' : 'Yes, Continue')}

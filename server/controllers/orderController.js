@@ -1494,6 +1494,15 @@ exports.updateStatus = async (req, res) => {
         if (currentStatus === 'confirmed') {
           return res.json({ message: 'Order already confirmed', order });
         }
+        if (order.isPreOrder && order.scheduledTime) {
+          const scheduledAt = new Date(order.scheduledTime);
+          const minutesUntilScheduled = Math.ceil((scheduledAt.getTime() - Date.now()) / 60000);
+          if (Number.isFinite(minutesUntilScheduled) && minutesUntilScheduled > 30) {
+            return res.status(400).json({
+              message: `Pre-orders can be confirmed only within 30 minutes of the scheduled time. Try again in ${minutesUntilScheduled - 30} minute(s).`
+            });
+          }
+        }
       }
 
       if (canCompleteService) {
