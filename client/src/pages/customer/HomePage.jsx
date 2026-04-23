@@ -193,7 +193,7 @@ export default function HomePage() {
         <section className="relative min-h-[550px] flex items-center">
           <div className="absolute inset-0">
             <img 
-              src="https://rollerhttps://lh3.googleusercontent.com/gps-cs-s/APNQkAHYDLS45t23HTdNCwSuQx9aoaiO9cK_M-ndup1fMDOPF85e3ZK3MRxWIs8cygOq-HCJASiAoKV0CabRwv4I4YX-DdHvxgy2T0_vi-VfEiApDqMd5Ap05pOzgcsyCYQtepzwOjmhntrhSXbD=s294-w294-h220-n-k-nocoastercafe.com/assets/images/hero-img-litti%20(1).png.com/assets/images/hero-img-litti%20(1).pngages.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1600&q=80"
+              src="https://lh3.googleusercontent.com/gps-cs-s/APNQkAHYDLS45t23HTdNCwSuQx9aoaiO9cK_M-ndup1fMDOPF85e3ZK3MRxWIs8cygOq-HCJASiAoKV0CabRwv4I4YX-DdHvxgy2T0_vi-VfEiApDqMd5Ap05pOzgcsyCYQtepzwOjmhntrhSXbD=s294-w294-h220-n-k-no"
               alt="Roller Coaster Cafe"
               className="h-full w-full object-cover"
             />
