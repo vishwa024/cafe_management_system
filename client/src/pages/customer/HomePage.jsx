@@ -281,7 +281,7 @@ export default function HomePage() {
                   over exceptional food and warm hospitality.
                 </p>
               </div>
-              <div className="rounded-2xl overflow-hidden shadow-xl h-[400px] md:h-[500px] w-full">
+              <div className="rounded-2xl overflow-hidden shadow-xl h-[300px] md:h-[500px] w-full">
                 <img
                   src="https://i.pinimg.com/736x/0b/5c/cd/0b5ccd9df7648b709f000d855a5787aa.jpg"
                   alt="Cafe interior"
