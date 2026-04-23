@@ -193,7 +193,7 @@ export default function HomePage() {
         <section className="relative min-h-[550px] flex items-center">
           <div className="absolute inset-0">
             <img 
-              src="C:\Users\Administrator\Downloads\—Pngtree—close-up of a steaming espresso_19678556.jpg"
+              src="https://pin.it/ORlRkCiFq"
               alt="Roller Coaster Cafe"
               className="h-full w-full object-cover"
             />
