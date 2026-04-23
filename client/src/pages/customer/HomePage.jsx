@@ -193,7 +193,7 @@ export default function HomePage() {
         <section className="relative min-h-[550px] flex items-center">
           <div className="absolute inset-0">
             <img 
-              src="https://lh3.googleusercontent.com/gps-cs-s/APNQkAHYDLS45t23HTdNCwSuQx9aoaiO9cK_M-ndup1fMDOPF85e3ZK3MRxWIs8cygOq-HCJASiAoKV0CabRwv4I4YX-DdHvxgy2T0_vi-VfEiApDqMd5Ap05pOzgcsyCYQtepzwOjmhntrhSXbD=s294-w294-h220-n-k-no"
+              src="https://i0.wp.com/themes.svn.wordpress.org/classic-coffee-shop/3.7.2/screenshot.png?w=post-thumbnail&strip=all"
               alt="Roller Coaster Cafe"
               className="h-full w-full object-cover"
             />
