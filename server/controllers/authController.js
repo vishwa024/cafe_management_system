@@ -17,6 +17,12 @@ const normalizePhone = (value) => String(value || '').replace(/\D/g, '');
 const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 const isValidPhone = (value) => /^\d{10,15}$/.test(value);
 const isStrongPassword = (value) => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(value);
+const buildIdentifierConditions = ({ email, phone }) => {
+  const conditions = [];
+  if (email) conditions.push({ email });
+  if (phone) conditions.push({ phone });
+  return conditions;
+};
 
 exports.register = async (req, res) => {
   try {
@@ -41,31 +47,24 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: 'Password must be at least 8 characters and include uppercase, lowercase, and a number' });
     }
 
-    const conditions = [];
-    if (email) conditions.push({ email });
-    if (phone) conditions.push({ phone });
+    const conditions = buildIdentifierConditions({ email, phone });
 
     const existing = conditions.length > 0 ? await User.findOne({ $or: conditions }) : null;
     if (existing) return res.status(409).json({ message: 'Email or phone already registered' });
 
-    const user = await User.create({
-      name,
-      email: email || undefined,
-      phone: phone || undefined,
-      password,
-      role: 'customer',
-      walletBalance: WELCOME_WALLET_BONUS,
-      loyaltyPoints: WELCOME_LOYALTY_POINTS,
-    });
-
     const otp = generateOTP();
     await OTPToken.findOneAndDelete({ ...(email ? { email } : { phone }), type: 'email-verify' });
     await OTPToken.create({
-      userId: user._id,
       email: email || undefined,
       phone: phone || undefined,
       otp: await bcrypt.hash(otp, 10),
       type: 'email-verify',
+      pendingRegistration: {
+        name,
+        email: email || undefined,
+        phone: phone || undefined,
+        password,
+      },
       expiresAt: new Date(Date.now() + 5 * 60 * 1000),
     });
 
@@ -73,8 +72,7 @@ exports.register = async (req, res) => {
     if (phone) await sendOTPSMS(phone, otp);
 
     res.status(201).json({
-      message: 'Registration successful. Please verify OTP.',
-      userId: user._id,
+      message: 'Registration started. Please verify OTP to finish creating your account.',
       walletBonus: WELCOME_WALLET_BONUS,
       loyaltyBonus: WELCOME_LOYALTY_POINTS,
     });
@@ -118,23 +116,45 @@ exports.login = async (req, res) => {
 
 exports.sendOTP = async (req, res) => {
   try {
-    const { email, phone, type } = req.body;
-    const identifier = email || phone;
+    const normalizedEmail = normalizeEmail(req.body?.email);
+    const normalizedPhone = normalizePhone(req.body?.phone);
+    const type = String(req.body?.type || '').trim();
+    const identifier = normalizedEmail || normalizedPhone;
+
+    if (!identifier || !type) {
+      return res.status(400).json({ message: 'Email or phone and OTP type are required' });
+    }
+
+    const existingRecord = await OTPToken.findOne({
+      ...(normalizedEmail ? { email: normalizedEmail } : { phone: normalizedPhone }),
+      type,
+    });
+
+    if (type === 'email-verify') {
+      const existingUserConditions = buildIdentifierConditions({ email: normalizedEmail, phone: normalizedPhone });
+      const existingUser = existingUserConditions.length > 0 ? await User.findOne({ $or: existingUserConditions }) : null;
+
+      if (!existingUser && !existingRecord?.pendingRegistration) {
+        return res.status(404).json({ message: 'Registration session expired. Please register again.' });
+      }
+    }
 
     const otp = generateOTP();
     const hash = await bcrypt.hash(otp, 10);
 
-    await OTPToken.findOneAndDelete({ ...(email ? { email } : { phone }), type });
+    await OTPToken.findOneAndDelete({ ...(normalizedEmail ? { email: normalizedEmail } : { phone: normalizedPhone }), type });
     await OTPToken.create({
-      email,
-      phone,
+      userId: existingRecord?.userId,
+      email: normalizedEmail || undefined,
+      phone: normalizedPhone || undefined,
       otp: hash,
       type,
+      pendingRegistration: existingRecord?.pendingRegistration,
       expiresAt: new Date(Date.now() + 5 * 60 * 1000),
     });
 
-    if (email) await sendOTPEmail(email, otp, 'there', { purpose: type });
-    if (phone) await sendOTPSMS(phone, otp);
+    if (normalizedEmail) await sendOTPEmail(normalizedEmail, otp, existingRecord?.pendingRegistration?.name || 'there', { purpose: type });
+    if (normalizedPhone) await sendOTPSMS(normalizedPhone, otp);
 
     res.json({ message: `OTP sent to ${identifier}` });
   } catch (err) {
@@ -144,7 +164,10 @@ exports.sendOTP = async (req, res) => {
 
 exports.verifyOTP = async (req, res) => {
   try {
-    const { email, phone, otp, type } = req.body;
+    const email = normalizeEmail(req.body?.email);
+    const phone = normalizePhone(req.body?.phone);
+    const otp = String(req.body?.otp || '');
+    const type = String(req.body?.type || '').trim();
 
     const record = await OTPToken.findOne({
       ...(email ? { email } : { phone }),
@@ -157,12 +180,34 @@ exports.verifyOTP = async (req, res) => {
     const isValid = await bcrypt.compare(otp, record.otp);
     if (!isValid) return res.status(400).json({ message: 'Invalid OTP' });
 
-    await record.deleteOne();
-
-    let user = await User.findOne({ $or: [{ email }, { phone }] });
+    const userConditions = buildIdentifierConditions({ email, phone });
+    let user = userConditions.length > 0 ? await User.findOne({ $or: userConditions }) : null;
 
     if (!user && type === 'login') {
       return res.status(404).json({ message: 'User not found. Please register.' });
+    }
+
+    if (!user && type === 'email-verify' && record.pendingRegistration) {
+      const pending = record.pendingRegistration;
+
+      const duplicateConditions = buildIdentifierConditions({ email: pending.email, phone: pending.phone });
+      const duplicateUser = duplicateConditions.length > 0 ? await User.findOne({ $or: duplicateConditions }) : null;
+
+      if (duplicateUser) {
+        return res.status(409).json({ message: 'Email or phone already registered' });
+      }
+
+      user = await User.create({
+        name: pending.name,
+        email: pending.email || undefined,
+        phone: pending.phone || undefined,
+        password: pending.password,
+        role: 'customer',
+        walletBalance: WELCOME_WALLET_BONUS,
+        loyaltyPoints: WELCOME_LOYALTY_POINTS,
+        isEmailVerified: Boolean(pending.email),
+        isPhoneVerified: Boolean(pending.phone),
+      });
     }
 
     if (!user) {
@@ -172,6 +217,21 @@ exports.verifyOTP = async (req, res) => {
     if (email) user.isEmailVerified = true;
     if (phone) user.isPhoneVerified = true;
     await user.save();
+
+    await record.deleteOne();
+
+    if (type === 'email-verify') {
+      return res.json({
+        message: 'Account verified successfully. Please login.',
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone || '',
+          role: user.role,
+        },
+      });
+    }
 
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);

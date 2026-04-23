@@ -6,6 +6,12 @@ const otpTokenSchema = new mongoose.Schema({
   phone: { type: String },
   otp: { type: String, required: true },
   type: { type: String, enum: ['email-verify', 'phone-verify', 'login', 'forgot'], required: true },
+  pendingRegistration: {
+    name: { type: String },
+    email: { type: String },
+    phone: { type: String },
+    password: { type: String },
+  },
   expiresAt: { type: Date, required: true, index: { expireAfterSeconds: 0 } },
 });
 
