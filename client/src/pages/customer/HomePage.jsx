@@ -283,7 +283,7 @@ export default function HomePage() {
               </div>
               <div className="rounded-2xl overflow-hidden shadow-xl">
                 <img 
-                  src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80"
+                  src="https://images.unsplash.https://rollercoastercafe.com/assets/images/about.png/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80"
                   alt="Cafe interior"
                   className="h-full w-full object-cover"
                 />
