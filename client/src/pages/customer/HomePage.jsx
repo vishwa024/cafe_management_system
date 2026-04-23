@@ -193,7 +193,7 @@ export default function HomePage() {
         <section className="relative min-h-[550px] flex items-center">
           <div className="absolute inset-0">
             <img 
-              src="https://www.vecteezy.com/photo/31618626-inside-clean-kitchen-of-a-modern-restaurant-or-mini-cafe-with-cooking-utensils-and-small-bar-counter-concept-by-ai-generated"
+              src="https://static.vecteezy.com/system/resources/thumbnails/038/707/394/small/ai-generated-open-space-kitchen-ideas-professional-advertisinggraphy-photo.jpg"
               alt="Roller Coaster Cafe"
               className="h-full w-full object-cover"
             />
